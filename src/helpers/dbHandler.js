@@ -13,16 +13,16 @@ const { ipcMain } = require("electron");
 // The last argument is the separator. By default it's slash (/)
 var db = new JsonDB(new Config("./src/db/reception.db.json", true, false, "/"));
 
-let newGuest = {
-  fn: "Ole",
-  mn: "Gunnar",
-  ln: "Solskjær",
-  arrivalDate: "20-02-2021",
-  departureDate: "22-02-2021",
-  cellphone: "291003101",
-};
+// let newGuest = {
+//   fn: "Ole",
+//   mn: "Gunnar",
+//   ln: "Solskjær",
+//   arrivalDate: "20-02-2021",
+//   departureDate: "22-02-2021",
+//   cellphone: "291003101",
+// };
 
-db.push("/guests/20-02-2021", newGuest);
+// db.push("/guests/20-02-2021", newGuest);
 
 ipcMain.on("pushToDatabase", (event, arg) => {
   //   console.log(arg) // prints "ping"

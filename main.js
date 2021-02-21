@@ -139,9 +139,19 @@ function createWindow() {
   });
 
   // Since alt+f4 does not work we need a emergency kill
+  // @TODO move shortcut to .secret and import
   globalShortcut.register("Alt+S+T+O+P", () => {
     killSwitch = true;
     app.quit();
+  });
+
+  // Global keycommand to enter admin panel login
+  // @TODO move shortcut to .secret and import
+  globalShortcut.register("Alt+A+D", () => {
+    mainWindow.webContents.send(
+      "/adminRouting",
+      "Secret command for admin login input"
+    );
   });
 
   mainWindow.setFullScreenable(false);

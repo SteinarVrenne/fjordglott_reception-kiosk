@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import {
   Button,
+  Dropdown,
   Form,
   Grid,
   Input,
@@ -15,6 +16,17 @@ import history from "../../history";
 const { ipcRenderer } = require("electron");
 
 class CheckinForm extends Component {
+  constructor() {
+    super();
+
+    // State
+    this.state = {};
+
+    // this.pushToDatabase = this.pushToDatabase.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
+
   componentWillUnmount() {
     document.body.style.backgroundColor = "#ffcccc00";
   }
@@ -51,9 +63,33 @@ class CheckinForm extends Component {
     // ipcRenderer.send("pushToDatabase", db);
   }
 
+  handleSubmit() {
+    // Check if all required inputs are filled
+    // @TODO
+
+    // get values from date inputs as they may necessarily be changed
+    console.log(this.arrivalDateInput, this.departureDateInput.current);
+    var event = new Event("onChange", { bubbles: true });
+    this.arrivalDateInput.dispatchEvent(event);
+
+    this.pushToDatabase();
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value,
+    });
+  }
+
   render() {
     // TESTING @TODO REMOVE
     this.pushToDatabase();
+
+    console.log(this.state);
 
     // Style body to make it easier for the eyes
     // document.body.style.backgroundColor = "#d6d6d61a";
@@ -91,11 +127,19 @@ class CheckinForm extends Component {
       },
     };
 
+    let countryOptions = [
+      { key: "no", value: "no", flag: "no", text: "Norway" },
+      { key: "de", value: "de", flag: "de", text: "Germany" },
+      { key: "nl", value: "nl", flag: "nl", text: "Netherlands" },
+      { key: "lu", value: "lu", flag: "lu", text: "Luxembourg" },
+    ];
+
     // get todays date for the form
     let date = new Date();
     let today = date.toJSON().split("T");
 
     // get date a week ago - guests can go back in time for their arrival
+    // Format it to fit into input standard values
     date.setDate(date.getDate() - 7);
     let aWeekAgo = date.toJSON().split("T");
 
@@ -106,6 +150,8 @@ class CheckinForm extends Component {
     function cancel() {
       history.push("/");
     }
+
+    const { nationality } = this.state;
 
     return (
       <div style={{ left: "10%", width: "80%", position: "absolute" }}>
@@ -121,7 +167,7 @@ class CheckinForm extends Component {
           </Grid.Row>
         </Grid>
 
-        <Form>
+        <Form onSubmit={this.handleSubmit}>
           <Form.Group widths="equal">
             <Form.Field>
               <label>{languageObject[currentLanguage].name[0]} *</label>
@@ -129,6 +175,9 @@ class CheckinForm extends Component {
                 fluid
                 placeholder={languageObject[currentLanguage].name[0]}
                 size="huge"
+                onChange={this.handleInputChange}
+                name="fn"
+                required
               />
             </Form.Field>
             <Form.Field>
@@ -137,6 +186,8 @@ class CheckinForm extends Component {
                 fluid
                 placeholder={languageObject[currentLanguage].name[1]}
                 size="huge"
+                onChange={this.handleInputChange}
+                name="mm"
               />
             </Form.Field>
             <Form.Field>
@@ -145,6 +196,8 @@ class CheckinForm extends Component {
                 fluid
                 placeholder={languageObject[currentLanguage].name[2]}
                 size="huge"
+                onChange={this.handleInputChange}
+                name="ln"
               />
             </Form.Field>
           </Form.Group>
@@ -157,6 +210,11 @@ class CheckinForm extends Component {
                 size="huge"
                 min={aWeekAgo[0]}
                 defaultValue={today[0]}
+                onChange={this.handleInputChange}
+                name="arrivalDate"
+                ref={(arrivalDateInput) => {
+                  this.arrivalDateInput = arrivalDateInput;
+                }}
               ></Input>
             </Form.Field>
             <Form.Field>
@@ -167,6 +225,11 @@ class CheckinForm extends Component {
                 size="huge"
                 min={today[0]}
                 defaultValue={tomorrow[0]}
+                onChange={this.handleInputChange}
+                name="departureDate"
+                ref={(departueDateInput) => {
+                  this.departueDateInput = departueDateInput;
+                }}
               ></Input>
             </Form.Field>
           </Form.Group>
@@ -179,6 +242,8 @@ class CheckinForm extends Component {
                 type="text"
                 size="huge"
                 placeholder={languageObject[currentLanguage].carAndCellphone[0]}
+                onChange={this.handleInputChange}
+                name="carRegNum"
               ></Input>
             </Form.Field>
             <Form.Field>
@@ -189,17 +254,61 @@ class CheckinForm extends Component {
                 type="text"
                 size="huge"
                 placeholder={languageObject[currentLanguage].carAndCellphone[1]}
+                onChange={this.handleInputChange}
+                name="cellphoneNum"
               ></Input>
             </Form.Field>
           </Form.Group>
 
           <Form.Group widths="equal">
             <Form.Field>
+              <label>{languageObject[currentLanguage].unit}UNIT</label>
+              <Input
+                type="text"
+                size="huge"
+                placeholder={languageObject[currentLanguage].email[0]}
+                onChange={this.handleInputChange}
+                name="email"
+              ></Input>
+            </Form.Field>
+
+            <Form.Field>
+              <label>{languageObject[currentLanguage].nationality}NAT * </label>
+              <Dropdown
+                // type="text"
+                size="large"
+                // placeholder={languageObject[currentLanguage].email[0]}
+                onChange={(event, { value }) => {
+                  this.setState({ nationality: value });
+                }}
+                name="nationality"
+                placeholder="Select Country"
+                fluid
+                search
+                selection
+                options={countryOptions}
+                additionPosition="top"
+                style={{ height: "53.17px" }}
+                minCharacters={1}
+                required
+                value={nationality}
+                // allowAdditions
+                // onAddItem={(e) => {
+                //   console.log(e);
+
+                //   countryOptions.push({key:"custom"})
+                // }}
+              ></Dropdown>
+            </Form.Field>
+
+            <Form.Field>
               <label>{languageObject[currentLanguage].email[0]}</label>
               <Input
                 type="text"
                 size="huge"
                 placeholder={languageObject[currentLanguage].email[0]}
+                onChange={this.handleInputChange}
+                name="email"
               ></Input>
             </Form.Field>
           </Form.Group>
@@ -214,6 +323,8 @@ class CheckinForm extends Component {
                 size="huge"
                 placeholder={languageObject[currentLanguage].howDidYouFindUs[1]}
                 style={{ maxHeight: "200px", minHeight: "70px" }}
+                onChange={this.handleInputChange}
+                name="comment"
               ></TextArea>
             </Form.Field>
           </Form.Group>
