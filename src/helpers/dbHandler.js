@@ -11,29 +11,40 @@ const { ipcMain } = require("electron");
 // If you put false, you'll have to call the save() method.
 // The third argument is to ask JsonDB to save the database in an human readable format. (default false)
 // The last argument is the separator. By default it's slash (/)
-var db = new JsonDB(new Config("./src/db/reception.db.json", true, false, "/"));
-
-// let newGuest = {
-//   fn: "Ole",
-//   mn: "Gunnar",
-//   ln: "Solskjær",
-//   arrivalDate: "20-02-2021",
-//   departureDate: "22-02-2021",
-//   cellphone: "291003101",
-// };
-
-// db.push("/guests/20-02-2021", newGuest);
+var db = new JsonDB(new Config("./src/db/reception.db.json", true, true, "/"));
 
 ipcMain.on("pushToDatabase", (event, arg) => {
   //   console.log(arg) // prints "ping"
   //   event.reply('pushToDatabase', 'pong')
 
   try {
-    db.push(arg.dbPath, arg.dbData);
+    // Find amount and use it as auto increment
+    // Keep a meta reference for amount of guests pushed in meta tag
+
+    db.push(arg.dbPath, arg.dbData, false);
     console.log("PUSHED");
+
+    event.reply("pushToDatabase", db.getData("/guests"));
   } catch {
     event.reply("pushToDatabase", "FAILURE");
   }
 });
 
-console.log(db.getData("/guests"));
+// db.push("/tests/testArray[]", "TEST1");
+
+console.log(db.getData("/"));
+// console.log(db.count("/tests/testArray"));
+
+// Initialize
+function initialize() {
+  console.log("WILL CREATE META TAGS");
+
+  db.push("/meta/guests/amount", 0);
+}
+
+// Check for missing data
+try {
+  db.getData("/meta");
+} catch {
+  initialize();
+}

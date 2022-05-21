@@ -31,26 +31,34 @@ class CheckinForm extends Component {
     document.body.style.backgroundColor = "#ffcccc00";
   }
 
-  pushToDatabase() {
+  componentDidMount() {
+    !this.state.arrivalDate
+      ? (this.state.arrivalDate = this.arrivalDateInput.props.defaultValue)
+      : this.state.arrivalDate;
+
+    !this.state.departureDate
+      ? (this.state.departureDate = this.departureDateInput.props.defaultValue)
+      : this.state.departureDate;
+  }
+
+  pushToDatabase(dbGuest) {
     let todayDate = new Date();
     console.log(todayDate.toLocaleDateString());
     let test = todayDate.toJSON();
 
     let db = {
-      dbPath: "/guests/" + todayDate.toLocaleDateString().replaceAll("/", "-"),
+      dbPath:
+        "/guests/" + todayDate.toLocaleDateString().replaceAll("/", "-") + "/TEST",
       dbData: {
-        timeStamp: {
-          time: todayDate.toLocaleTimeString(),
-          date: todayDate.toLocaleDateString(),
-          isoStandardTime: todayDate.toISOString(),
+        metadata: {
+          timeStamp: {
+            time: todayDate.toLocaleTimeString(),
+            date: todayDate.toLocaleDateString(),
+            isoStandardTime: todayDate.toISOString(),
+          },
         },
 
-        fn: "Ole",
-        mn: "Gunnar",
-        ln: "Solskjær",
-        arrivalDate: "20-02-2021",
-        departureDate: "22-02-2021",
-        cellphone: "291003101",
+        guestData: dbGuest,
       },
     };
 
@@ -60,19 +68,30 @@ class CheckinForm extends Component {
       console.log(event, arg); // prints if error. This is big bad
     });
 
-    // ipcRenderer.send("pushToDatabase", db);
+    ipcRenderer.send("pushToDatabase", db);
   }
 
   handleSubmit() {
     // Check if all required inputs are filled
     // @TODO
 
-    // get values from date inputs as they may necessarily be changed
-    console.log(this.arrivalDateInput, this.departureDateInput.current);
-    var event = new Event("onChange", { bubbles: true });
-    this.arrivalDateInput.dispatchEvent(event);
+    let dbGuest = {
+      firstName: this.state.fn,
+      middleName: this.state.mn,
+      lastName: this.state.ln,
+      carRegNum: this.state.carRegNum,
+      email: this.state.email,
+      cellphoneNum: this.state.cellphoneNum,
+      nationality: this.state.nationality,
+      comment: this.state.comment,
+      arrivalDate: this.state.arrivalDate,
+      departureDate: this.state.departureDate,
+      unitType: this.state.unitType,
+    };
 
-    this.pushToDatabase();
+    // console.log(this.state, dbGuest);
+
+    this.pushToDatabase(dbGuest);
   }
 
   handleInputChange(event) {
@@ -87,7 +106,7 @@ class CheckinForm extends Component {
 
   render() {
     // TESTING @TODO REMOVE
-    this.pushToDatabase();
+    // this.pushToDatabase();
 
     console.log(this.state);
 
@@ -153,6 +172,14 @@ class CheckinForm extends Component {
 
     const { nationality } = this.state;
 
+    // Check if departure is before arrival
+    // @TODO add to checkout checkycheck
+    let departureBeforeArrival = false;
+    this.state.departureDate < this.state.arrivalDate
+      ? (departureBeforeArrival = true)
+      : departureBeforeArrival;
+    // console.log(this.state.departureDate < this.state.arrivalDate);
+
     return (
       <div style={{ left: "10%", width: "80%", position: "absolute" }}>
         <Grid>
@@ -187,7 +214,7 @@ class CheckinForm extends Component {
                 placeholder={languageObject[currentLanguage].name[1]}
                 size="huge"
                 onChange={this.handleInputChange}
-                name="mm"
+                name="mn"
               />
             </Form.Field>
             <Form.Field>
@@ -223,12 +250,12 @@ class CheckinForm extends Component {
                 fluid
                 type="date"
                 size="huge"
-                min={today[0]}
+                min={this.state.arrivalDate ? this.state.arrivalDate : today[0]}
                 defaultValue={tomorrow[0]}
                 onChange={this.handleInputChange}
                 name="departureDate"
-                ref={(departueDateInput) => {
-                  this.departueDateInput = departueDateInput;
+                ref={(departureDateInput) => {
+                  this.departureDateInput = departureDateInput;
                 }}
               ></Input>
             </Form.Field>
@@ -262,14 +289,32 @@ class CheckinForm extends Component {
 
           <Form.Group widths="equal">
             <Form.Field>
-              <label>{languageObject[currentLanguage].unit}UNIT</label>
-              <Input
-                type="text"
-                size="huge"
-                placeholder={languageObject[currentLanguage].email[0]}
-                onChange={this.handleInputChange}
-                name="email"
-              ></Input>
+              <label>{languageObject[currentLanguage].nationality}NAT * </label>
+              <Dropdown
+                // type="text"
+                size="large"
+                // placeholder={languageObject[currentLanguage].email[0]}
+                onChange={(event, { value }) => {
+                  this.setState({ nationality: value });
+                }}
+                name="unit"
+                placeholder="Select Country"
+                fluid
+                search
+                selection
+                options={countryOptions}
+                additionPosition="top"
+                style={{ height: "53.17px" }}
+                minCharacters={1}
+                required
+                value={nationality}
+                // allowAdditions
+                // onAddItem={(e) => {
+                //   console.log(e);
+
+                //   countryOptions.push({key:"custom"})
+                // }}
+              ></Dropdown>
             </Form.Field>
 
             <Form.Field>
